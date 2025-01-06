@@ -1,3 +1,5 @@
+from textnode import *
+
 class HTMLNode():
     def __init__(self,tag = None, value = None, children = None, props = None):
         self.tag = tag
@@ -47,3 +49,21 @@ class ParentNode(HTMLNode):
             output_str+=child.to_html()
         output_str += f"</{self.tag}>"
         return output_str
+
+def text_node_to_html_node(text_node):
+    match text_node.text_type:
+        case TextType.TEXT:
+            new_node = LeafNode(None, text_node.text)
+        case TextType.BOLD:
+            new_node = LeafNode("b",text_node.text)
+        case TextType.ITALIC:
+            new_node = LeafNode("i",text_node.text)
+        case TextType.CODE:
+            new_node = LeafNode("code",text_node.text)
+        case TextType.LINK:
+            new_node = LeafNode("a",text_node.text,{"href": text_node.url})
+        case TextType.IMAGE:
+            new_node = LeafNode("img","",{"src": text_node.url, "alt": text_node.text})
+        case _:
+            raise ValueError("Invalid TextType")
+    return new_node
