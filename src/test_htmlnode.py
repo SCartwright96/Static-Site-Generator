@@ -87,5 +87,15 @@ class TestHTMLNode(unittest.TestCase):
         print(test_leaf_node)
         self.assertEqual(repr(test_leaf_node), repr(expected_leaf_node))
 
+    def test_extract_markdown_images(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        print(extract_markdown_images(text))
+        self.assertEqual([("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")],extract_markdown_images(text))
+
+    def test_extract_markdown_links(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        print(extract_markdown_links(text))
+        self.assertEqual([("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")], extract_markdown_links(text))
+
 if __name__ == "__main__":
     unittest.main()

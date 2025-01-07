@@ -1,4 +1,5 @@
 from textnode import *
+import re
 
 class HTMLNode():
     def __init__(self,tag = None, value = None, children = None, props = None):
@@ -67,3 +68,20 @@ def text_node_to_html_node(text_node):
         case _:
             raise ValueError("Invalid TextType")
     return new_node
+
+def extract_markdown_images(text):
+    alt_text = re.findall(r"!\[(.*?)\]", text)
+    urls = re.findall(r"!\[.*?\]\((.*?)\)", text)
+    images = []
+    for i in range(len(alt_text)):
+        images.append((alt_text[i], urls[i]))
+    return images
+
+def extract_markdown_links(text):
+    anchor_text = re.findall(r"(?<!!)\[(.*?)\]", text)
+    urls = re.findall(r"(?<!!)\[.*?\]\((.*?)\)", text)
+    links = []
+    for i in range(len(anchor_text)):
+        links.append((anchor_text[i], urls[i]))
+    return links
+
