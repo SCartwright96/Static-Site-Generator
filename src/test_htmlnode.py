@@ -1,101 +1,106 @@
-from htmlnode import *
-from textnode import *
 import unittest
+from htmlnode import LeafNode, ParentNode, HTMLNode
+
 
 class TestHTMLNode(unittest.TestCase):
+    def test_to_html_props(self):
+        node = HTMLNode(
+            "div",
+            "Hello, world!",
+            None,
+            {"class": "greeting", "href": "https://boot.dev"},
+        )
+        self.assertEqual(
+            node.props_to_html(),
+            ' class="greeting" href="https://boot.dev"',
+        )
+
+    def test_values(self):
+        node = HTMLNode(
+            "div",
+            "I wish I could read",
+        )
+        self.assertEqual(
+            node.tag,
+            "div",
+        )
+        self.assertEqual(
+            node.value,
+            "I wish I could read",
+        )
+        self.assertEqual(
+            node.children,
+            None,
+        )
+        self.assertEqual(
+            node.props,
+            None,
+        )
+
     def test_repr(self):
-        test_node = HTMLNode("TestTag","TestValue","TestChildren","TestProps")
-        print("Expected: TestTag=TestValue TestChildren=TestProps")
-        print(f"Actual: {repr(test_node)}")
-        self.assertEqual(repr(test_node), "HTMLNode(TestTag, TestValue, TestChildren, TestProps)")
+        node = HTMLNode(
+            "p",
+            "What a strange world",
+            None,
+            {"class": "primary"},
+        )
+        self.assertEqual(
+            node.__repr__(),
+            "HTMLNode(p, What a strange world, children: None, {'class': 'primary'})",
+        )
 
-    def test_tag(self):
-        test_node = HTMLNode("TestTags","TestValue","TestChildren","TestProps")
-        print("Expected: TestTag=TestValue TestChildren=TestProps")
-        print(f"Actual: {repr(test_node)}")
-        self.assertNotEqual(repr(test_node), " TestTag=TestValue TestChildren=TestProps")
+    def test_to_html_no_children(self):
+        node = LeafNode("p", "Hello, world!")
+        self.assertEqual(node.to_html(), "<p>Hello, world!</p>")
 
-    def test_value(self):
-        test_node = HTMLNode("TestTag","TestValues","TestChildren","TestProps")
-        print("Expected: TestTag=TestValue TestChildren=TestProps")
-        print(f"Actual: {repr(test_node)}")
-        self.assertNotEqual(repr(test_node), " TestTag=TestValue TestChildren=TestProps")
+    def test_to_html_no_tag(self):
+        node = LeafNode(None, "Hello, world!")
+        self.assertEqual(node.to_html(), "Hello, world!")
 
-    def test_Child(self):
-        test_node = HTMLNode("TestTag","TestValue","TestChildrens","TestProps")
-        print("Expected: TestTag=TestValue TestChildren=TestProps")
-        print(f"Actual: {repr(test_node)}")
-        self.assertNotEqual(repr(test_node), " TestTag=TestValue TestChildren=TestProps")
-    
-    def test_prop(self):
-        test_node = HTMLNode("TestTag","TestValue","TestChildren","TestProp")
-        print("Expected: TestTag=TestValue TestChildren=TestProps")
-        print(f"Actual: {repr(test_node)}")
-        self.assertNotEqual(repr(test_node), " TestTag=TestValue TestChildren=TestProps")
+    def test_to_html_with_children(self):
+        child_node = LeafNode("span", "child")
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(parent_node.to_html(), "<div><span>child</span></div>")
 
-    def test_missing(self):
-        test_node = HTMLNode("TestTag",children="TestChildren",props="TestProps")
-        print("Expected: TestTag=TestValue TestChildren=TestProps")
-        print(f"Actual: {repr(test_node)}")
-        self.assertEqual(repr(test_node), "HTMLNode(TestTag, None, TestChildren, TestProps)")
+    def test_to_html_with_grandchildren(self):
+        grandchild_node = LeafNode("b", "grandchild")
+        child_node = ParentNode("span", [grandchild_node])
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(
+            parent_node.to_html(),
+            "<div><span><b>grandchild</b></span></div>",
+        )
 
-    def test_leaf(self):
-        test_node = LeafNode("a","Actions",{"Test": "Test2"})
-        self.assertEqual(test_node.to_html(), """<a Test="Test2">Actions</a>""")
+    def test_to_html_many_children(self):
+        node = ParentNode(
+            "p",
+            [
+                LeafNode("b", "Bold text"),
+                LeafNode(None, "Normal text"),
+                LeafNode("i", "italic text"),
+                LeafNode(None, "Normal text"),
+            ],
+        )
+        self.assertEqual(
+            node.to_html(),
+            "<p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p>",
+        )
 
-    def test_leaf_no_tag(self):
-        test_node = LeafNode(None,"Actions",{"Test": "Test2"})
-        self.assertEqual(test_node.to_html(), "Actions")
+    def test_headings(self):
+        node = ParentNode(
+            "h2",
+            [
+                LeafNode("b", "Bold text"),
+                LeafNode(None, "Normal text"),
+                LeafNode("i", "italic text"),
+                LeafNode(None, "Normal text"),
+            ],
+        )
+        self.assertEqual(
+            node.to_html(),
+            "<h2><b>Bold text</b>Normal text<i>italic text</i>Normal text</h2>",
+        )
 
-    def test_leaf_repr(self):
-        test_node = LeafNode("a","Actions","")
-        self.assertEqual(repr(test_node), "HTMLNode(a, Actions, None, )")
-
-    def test_ParentNode(self):
-        test_leaf = LeafNode("a","Actions","")
-        middle_parent = ParentNode("Mid",{test_leaf})
-        top_parent = ParentNode("Top",{middle_parent})
-        self.assertEqual(top_parent.to_html(),"<Top><Mid><a>Actions</a></Mid></Top>")
-
-    def test_ParentNodeProps(self):
-        test_leaf = LeafNode("a","Actions","")
-        middle_parent = ParentNode("Mid",[test_leaf],{"MidTag": "MidTest"})
-        top_parent = ParentNode("Top",[middle_parent], {"TopTag": "TopTest", "Top2":"TopTest2"})
-        self.assertEqual(top_parent.to_html(),"""<Top TopTag="TopTest" Top2="TopTest2"><Mid MidTag="MidTest"><a>Actions</a></Mid></Top>""")
-
-    def test_TextNode_to_HTML(self):
-        print("text node to HTML test: ")
-        test_text_node = TextNode("This is bold", TextType.BOLD)
-        test_leaf_node = text_node_to_html_node(test_text_node)
-        expected_leaf_node = LeafNode("b", "This is bold")
-        print(test_leaf_node)
-        self.assertEqual(repr(test_leaf_node), repr(expected_leaf_node))
-
-    def test_TextNode_to_HTML_Link(self):
-        print("text node to HTML test: ")
-        test_text_node = TextNode("This is a link", TextType.LINK, "test.com")
-        test_leaf_node = text_node_to_html_node(test_text_node)
-        expected_leaf_node = LeafNode("a", "This is a link", {"href": "test.com"})
-        print(test_leaf_node)
-        self.assertEqual(repr(test_leaf_node), repr(expected_leaf_node))
-
-    def test_TextNode_to_HTML_Image(self):
-        print("text node to HTML test: ")
-        test_text_node = TextNode("This is alt text", TextType.IMAGE, "test.com")
-        test_leaf_node = text_node_to_html_node(test_text_node)
-        expected_leaf_node = LeafNode("img", "", {"src": "test.com", "alt": "This is alt text"})
-        print(test_leaf_node)
-        self.assertEqual(repr(test_leaf_node), repr(expected_leaf_node))
-
-    def test_extract_markdown_images(self):
-        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
-        print(extract_markdown_images(text))
-        self.assertEqual([("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")],extract_markdown_images(text))
-
-    def test_extract_markdown_links(self):
-        text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
-        print(extract_markdown_links(text))
-        self.assertEqual([("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")], extract_markdown_links(text))
 
 if __name__ == "__main__":
     unittest.main()
